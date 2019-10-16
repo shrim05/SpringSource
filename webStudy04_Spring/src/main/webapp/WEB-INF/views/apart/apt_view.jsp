@@ -12,9 +12,12 @@
 <body>
 <!-- 서울 지역의 201909 의 아파트 거래가정보 출력. -->
 
-<input type="text" name="keyword" />
+<input type="text" name="keyword" placeholder="동이름 입력" />
 <button id="searchBtn">검색하기</button>
-
+<form id="searchForm">
+	<input type='hidden' name='lawd_cd' />
+	<div id="searchResult"></div>
+</form>
 <button id="btn">가져오기</button>
 <div id="resultArea">
 	<table>
@@ -32,13 +35,40 @@
 let headerArea = $('#headerArea');
 let listBody = $('#listBody');
 let searchBtn = $('#searchBtn');
-searchBtn.on('click',function(){
+let searchResult = $('#searchResult');
+let searchForm = $('#searchForm');
+let cPath = "${pageContext.request.contextPath}";
+
+searchForm.on('click','.codeList',function(){
+	let aptCode = $(this).prop('id');
+	$('[name="lawd_cd"]').val(aptCode);
 	
 });
+searchBtn.on('click',function(){
+	let keyword = $('[name="keyword"]').val();
+	$.ajax({
+	    url: cPath+"/nameList",
+	    data: {"keyword":keyword},
+	    dataType: "json",
+	    success: function (resp) {
+	    	let code ="<div>검색할 기간 선택</div><input type='date' name='deal_ymd' placeholder='년월입력'/>  ";
+	    	$.each(resp,function(i,v){
+   				code+="<div class='codeList' id="+v.code+">"+v.name+"</div>"
+	    	});
+	    	searchResult.html(code);
+	    },
+	    error:function(xhr){
+	    	console.log(xhr.status);
+	    }
+	});
+});
 $('#btn').on("click",function(){
+	let deal_ymd = $("[name='deal_ymd']").val();
+	let lawd_cd = $('[name="lawd_cd"]').val();
 	$.ajax({
 		data:{
-			
+			"deal_ymd":deal_ymd,
+			"lawd_cd":lawd_cd
 		},
 		dataType:"json",
 		success:function(resp){
