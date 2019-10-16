@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans 	xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd">
+
+	<!-- spring 기본 전략 로딩(약 27가지, 프론트컨트롤러, 맵퍼, 인보커 등등) 
+		HandlerMapping/HandlerAdapter/ViewResolver/MessageConverter 등 MVC 모듈의 기본전략이 자동 등록
+	-->
+	<annotation-driven/>
+	
+	<beans:bean class="org.springframework.web.servlet.view.InternalResourceViewResolver"
+		p:prefix="/WEB-INF/views/"
+		p:suffix=".jsp"
+	/>
+	<!-- 정적웹리소스 서버에서 사용하는것 경로 안꼬이도록 설정 -->
+	<default-servlet-handler/>
+	<!-- 특정 위치에서 정적리소스 일괄관리. 장점이자 단점
+	<resources location="" mapping=""></resources> -->
+	
+	<!-- id는 고정적으로 multipartResolver로 설정. 멀티파트 파싱역할 httpServletRequestWrapper-->
+	<beans:bean id="multipartResolver" class="org.springframework.web.multipart.support.StandardServletMultipartResolver"></beans:bean>
+	
+		<!-- component-scan은 annotation 사용 설정을 포함 -->
+	<context:component-scan base-package="kr.or.ddit" use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+		<context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+	</context:component-scan>
+	<!-- id는 messageSource 고정 -->
+	<beans:bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource" 
+		p:basename="kr.or.ddit.msg.message"
+	/>
+	<beans:bean id="localeResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver" 
+	 	p:cookieName="langCookie"
+	 	p:cookiePath="/"
+	 	p:cookieMaxAge="#{60*60*24*3}"
+	 />
+	<interceptors>
+		<beans:bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor" 
+			p:paramName="lang"
+		 />
+		 <interceptor>
+		 	<mapping path="/**/*.js"/>
+		 	<mapping path="/**/*.html"/>
+		 	<mapping path="/images/**"/>
+		 	<beans:bean class="org.springframework.web.servlet.mvc.WebContentInterceptor" 
+		 		p:cacheSeconds="0"
+		 	/>
+		 </interceptor>
+		 <interceptor>
+		 	<mapping path="/mypage"/>
+		 	<beans:bean class="kr.or.ddit.common.interceptors.AuthenticationInterceptor" />
+		 </interceptor>
+	</interceptors>
+	<beans:bean id="restTemplate" class="org.springframework.web.client.RestTemplate" /> 
+</beans:beans>
